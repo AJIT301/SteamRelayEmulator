@@ -1,0 +1,14 @@
+C:\Users\artur\OneDrive\Dokumentai\Csharp\RelayEmulator\bin\Debug\net9.0-windows\RelayEmulator.exe
+C:\Users\artur\OneDrive\Dokumentai\Csharp\RelayEmulator\bin\Debug\net9.0-windows\RelayEmulator.deps.json
+C:\Users\artur\OneDrive\Dokumentai\Csharp\RelayEmulator\bin\Debug\net9.0-windows\RelayEmulator.runtimeconfig.json
+C:\Users\artur\OneDrive\Dokumentai\Csharp\RelayEmulator\bin\Debug\net9.0-windows\RelayEmulator.dll
+C:\Users\artur\OneDrive\Dokumentai\Csharp\RelayEmulator\bin\Debug\net9.0-windows\RelayEmulator.pdb
+C:\Users\artur\OneDrive\Dokumentai\Csharp\RelayEmulator\obj\Debug\net9.0-windows\RelayEmulator.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\artur\OneDrive\Dokumentai\Csharp\RelayEmulator\obj\Debug\net9.0-windows\RelayEmulator.AssemblyInfoInputs.cache
+C:\Users\artur\OneDrive\Dokumentai\Csharp\RelayEmulator\obj\Debug\net9.0-windows\RelayEmulator.AssemblyInfo.cs
+C:\Users\artur\OneDrive\Dokumentai\Csharp\RelayEmulator\obj\Debug\net9.0-windows\RelayEmulator.csproj.CoreCompileInputs.cache
+C:\Users\artur\OneDrive\Dokumentai\Csharp\RelayEmulator\obj\Debug\net9.0-windows\RelayEmulator.dll
+C:\Users\artur\OneDrive\Dokumentai\Csharp\RelayEmulator\obj\Debug\net9.0-windows\refint\RelayEmulator.dll
+C:\Users\artur\OneDrive\Dokumentai\Csharp\RelayEmulator\obj\Debug\net9.0-windows\RelayEmulator.pdb
+C:\Users\artur\OneDrive\Dokumentai\Csharp\RelayEmulator\obj\Debug\net9.0-windows\RelayEmulator.genruntimeconfig.cache
+C:\Users\artur\OneDrive\Dokumentai\Csharp\RelayEmulator\obj\Debug\net9.0-windows\ref\RelayEmulator.dll
