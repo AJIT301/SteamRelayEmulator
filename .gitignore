@@ -1,0 +1,33 @@
+# Binaries and build artifacts
+bin/
+obj/
+
+# User-specific files
+*.user
+*.suo
+*.cache
+
+# Visual Studio
+.vs/
+
+# Rider
+.idea/
+
+# Editor directories
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# OS specific files
+Thumbs.db
+.DS_Store
+
+# Packages
+*.nupkg
+packages/
