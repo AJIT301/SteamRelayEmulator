@@ -1,7 +1,7 @@
 # Steam Relay Blocker
 
 Steam Relay Blocker is a Windows desktop application designed to help you block Steam relay servers by managing Windows Firewall rules. This can improve your gaming experience by reducing latency caused by suboptimal relay routing.
-Also can be used if you want to connect for example from USA to European servers by blocking your local relay servers, which will force Steam to assign you to European/NA or Asian servers. Blocking it futher you can achieve your desired destination. 
+Also can be used if you want to connect for example from USA to European servers by blocking your local relay servers, which will force Steam to assign you to European/NA or Asian servers. Blocking it futher you can achieve your desired destination.
 
 ## Features
 
@@ -19,19 +19,34 @@ Also can be used if you want to connect for example from USA to European servers
 - Administrator privileges (application will request elevation automatically)
 - Internet connection to fetch Steam configuration data
 
-## Installation
+## Building and Publishing
 
+### Development Build
 1. Clone or download the project
 2. Open `RelayEmulator.csproj` in Visual Studio or use the dotnet CLI
 3. Build the project:
    ```
    dotnet build
    ```
-4. Run the application:
-   ```
-   dotnet run
-   ```
+4. Find the executable in `bin/Debug/net472/RelayEmulator.exe`
 
+### Standalone Executable (Recommended for Distribution)
+To create a self-contained executable that doesn't require the .NET Framework to be installed on the target machine:
+
+```
+dotnet publish -c Release -r win-x64 --self-contained=true
+```
+
+This will create a `RelayEmulator.exe` in the `bin\Release\net472\win-x64\publish\` directory along with all required .NET runtime files.
+
+Alternatively, for 32-bit systems:
+```
+dotnet publish -c Release -r win-x86 --self-contained=true
+```
+
+The published executable will be in `bin\Release\net472\win-x86\publish\`.
+
+### Running the Application
 The application will automatically request administrator privileges on startup.
 
 ## Usage
@@ -44,8 +59,12 @@ The application will automatically request administrator privileges on startup.
 6. Blocked relays will show "Yes" in the "Is Blocked?" column
 
 ### Additional Notes
-
-- The application fetches configuration data from a local service at `http://localhost:3001/steamconfig`
 - Firewall rules are named with prefix "SteamRelayBlock-"
 - To unblock IPs, simply uncheck them and apply rules again
 - Ping times are measured asynchronously and may take a few seconds to appear
+
+### Currently NOT working
+- Checking for Is blocked? state. It shows No by default. 
+- Each time you create ruleset - block range of IPs it will result in another 3 inbound and 3 outbound rulesets.
+- You must delete them manually in advanced firewall settings.
+

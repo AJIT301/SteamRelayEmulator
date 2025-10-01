@@ -264,8 +264,8 @@ public class MainForm : Form
         try
         {
             using var client = new HttpClient();
-            var response = await client.GetStringAsync("http://localhost:3001/steamconfig");
-
+            // var response = await client.GetStringAsync("http://localhost:3001/steamconfig");
+            var response = await client.GetStringAsync("https://api.steampowered.com/ISteamApps/GetSDRConfig/v1/?appid=730");
             var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
             config = JsonSerializer.Deserialize<SteamConfig>(response, options);
 

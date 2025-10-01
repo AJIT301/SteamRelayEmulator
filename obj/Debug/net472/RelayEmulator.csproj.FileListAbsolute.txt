@@ -20,3 +20,4 @@ C:\Users\artur\OneDrive\Dokumentai\Csharp\RelayEmulator\obj\Debug\net472\RelayEm
 C:\Users\artur\OneDrive\Dokumentai\Csharp\RelayEmulator\obj\Debug\net472\RelayEmu.B29C7BF4.Up2Date
 C:\Users\artur\OneDrive\Dokumentai\Csharp\RelayEmulator\obj\Debug\net472\RelayEmulator.exe
 C:\Users\artur\OneDrive\Dokumentai\Csharp\RelayEmulator\obj\Debug\net472\RelayEmulator.pdb
+C:\Users\artur\OneDrive\Dokumentai\Csharp\relayemulator\obj\Debug\net472\RelayEmulator.sourcelink.json

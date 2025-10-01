@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RelayEmulator")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+adce4fb874df5721fc906f1858dcbe5cb43fbe04")]
 [assembly: System.Reflection.AssemblyProductAttribute("RelayEmulator")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RelayEmulator")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
