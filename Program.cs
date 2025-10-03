@@ -53,19 +53,20 @@ public class MainForm : Form
     private int lastCheckedRow = -1;
     private HashSet<string> blockedIPs = new HashSet<string>();
     private string? selectedContinent = null;
+    private bool regionSelectionPending = false;
     private const string RULE_NAME = "SteamRelayBlock";
 
     public MainForm()
     {
         this.Text = "Steam Relay Blocker";
-        this.Size = new System.Drawing.Size(1000, 700);
-        this.MinimumSize = new System.Drawing.Size(800, 600);
+        this.Size = new System.Drawing.Size(1200, 800);
+        this.MinimumSize = new System.Drawing.Size(1000, 700);
         this.StartPosition = FormStartPosition.CenterScreen;
         this.BackColor = System.Drawing.Color.FromArgb(240, 240, 240);
 
         dataGridView = new DataGridView();
         dataGridView.Location = new System.Drawing.Point(12, 12);
-        dataGridView.Size = new System.Drawing.Size(this.ClientSize.Width - 24, this.ClientSize.Height - 100);
+        dataGridView.Size = new System.Drawing.Size(this.ClientSize.Width - 24, this.ClientSize.Height - 165);
         dataGridView.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
         dataGridView.AutoGenerateColumns = false;
         dataGridView.BorderStyle = BorderStyle.Fixed3D;
@@ -136,7 +137,7 @@ public class MainForm : Form
 
         selectedRegionLabel = new Label();
         selectedRegionLabel.Text = "Selected Region: None";
-        selectedRegionLabel.Location = new System.Drawing.Point(12, this.ClientSize.Height - 55);
+        selectedRegionLabel.Location = new System.Drawing.Point(12, this.ClientSize.Height - 155);
         selectedRegionLabel.Size = new System.Drawing.Size(250, 20);
         selectedRegionLabel.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
         selectedRegionLabel.Font = new System.Drawing.Font("Segoe UI", 9);
@@ -145,13 +146,13 @@ public class MainForm : Form
 
         statusLabel = new Label();
         statusLabel.Text = "Ready - Windows Firewall connected";
-        statusLabel.Location = new System.Drawing.Point(12, this.ClientSize.Height - 30);
-        statusLabel.Size = new System.Drawing.Size(this.ClientSize.Width - 24, 25);
+        statusLabel.Location = new System.Drawing.Point(12, this.ClientSize.Height - 125);
+        statusLabel.Size = new System.Drawing.Size(this.ClientSize.Width - 24, 90);
         statusLabel.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
         statusLabel.BorderStyle = BorderStyle.None;
         statusLabel.BackColor = System.Drawing.Color.FromArgb(220, 220, 220);
         statusLabel.Font = new System.Drawing.Font("Segoe UI", 9);
-        statusLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+        statusLabel.TextAlign = System.Drawing.ContentAlignment.TopLeft;
         statusLabel.Padding = new Padding(5, 0, 0, 0);
         this.Controls.Add(statusLabel);
 
@@ -284,6 +285,7 @@ public class MainForm : Form
             RefreshButton_Click(null, EventArgs.Empty);
             string modeMessage = !string.IsNullOrEmpty(selectedContinent) ? $" (filtered: all except {selectedContinent})" : " (manual selection)";
             statusLabel.Text = $"Updated firewall rules with {selectedIPs.Count} relay IPs{modeMessage}";
+            regionSelectionPending = false; // Clear pending flag after successful application
         }
         catch (Exception ex)
         {
@@ -402,10 +404,13 @@ public class MainForm : Form
 
                 dataGridView.Rows.AddRange(rows.ToArray());
 
-
-
-                // Update status to show matching info
-                statusLabel.Text = $"Firewall: {blockedIPs.Count} IPs blocked | Grid: {blockedCount} matched";
+        // Update status to show matching info
+        string baseStatus = $"Firewall: {blockedIPs.Count} IPs blocked | Grid: {blockedCount} matched";
+        if (regionSelectionPending && !string.IsNullOrEmpty(selectedContinent))
+        {
+            baseStatus += $"\nRegion '{selectedContinent}' selected. Press 'Apply Block Rules' to enforce blocking.";
+        }
+        statusLabel.Text = baseStatus;
 
                 // Ping IPs asynchronously after loading
                 foreach (DataGridViewRow row in dataGridView.Rows)
@@ -570,7 +575,7 @@ public class MainForm : Form
         {
             selectedContinent = dialog.SelectedContinent;
             selectedRegionLabel.Text = $"Selected Region: {selectedContinent}";
-            statusLabel.Text = $"Region selected: {selectedContinent}. Refreshing data...";
+            regionSelectionPending = true;
             RefreshButton_Click(null, EventArgs.Empty);
         }
     }
