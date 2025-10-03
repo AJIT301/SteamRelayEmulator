@@ -45,28 +45,47 @@ public class MainForm : Form
     private DataGridView dataGridView;
     private Button refreshButton;
     private Button blockButton;
+    private Button selectRegionButton;
     private Label statusLabel;
+    private Label selectedRegionLabel;
+    private HashSet<string> availableContinents = new HashSet<string>();
     private SteamConfig? config;
     private int lastCheckedRow = -1;
     private HashSet<string> blockedIPs = new HashSet<string>();
+    private string? selectedContinent = null;
     private const string RULE_NAME = "SteamRelayBlock";
 
     public MainForm()
     {
         this.Text = "Steam Relay Blocker";
-        this.Size = new System.Drawing.Size(800, 620);
+        this.Size = new System.Drawing.Size(1000, 700);
+        this.MinimumSize = new System.Drawing.Size(800, 600);
+        this.StartPosition = FormStartPosition.CenterScreen;
+        this.BackColor = System.Drawing.Color.FromArgb(240, 240, 240);
 
         dataGridView = new DataGridView();
-        dataGridView.Location = new System.Drawing.Point(10, 10);
-        dataGridView.Size = new System.Drawing.Size(760, 500);
+        dataGridView.Location = new System.Drawing.Point(12, 12);
+        dataGridView.Size = new System.Drawing.Size(this.ClientSize.Width - 24, this.ClientSize.Height - 100);
+        dataGridView.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
         dataGridView.AutoGenerateColumns = false;
-        dataGridView.Columns.Add(new DataGridViewTextBoxColumn { Name = "IsBlocked", HeaderText = "Is Blocked?", Width = 80 });
+        dataGridView.BorderStyle = BorderStyle.Fixed3D;
+        dataGridView.BackgroundColor = System.Drawing.Color.White;
+        dataGridView.GridColor = System.Drawing.Color.LightGray;
+        dataGridView.ColumnHeadersDefaultCellStyle.BackColor = System.Drawing.Color.FromArgb(200, 200, 200);
+        dataGridView.ColumnHeadersDefaultCellStyle.Font = new System.Drawing.Font("Segoe UI", 9, System.Drawing.FontStyle.Bold);
+        dataGridView.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+        dataGridView.DefaultCellStyle.Font = new System.Drawing.Font("Segoe UI", 9);
+        dataGridView.DefaultCellStyle.SelectionBackColor = System.Drawing.Color.FromArgb(51, 153, 255);
+        dataGridView.DefaultCellStyle.SelectionForeColor = System.Drawing.Color.White;
+        dataGridView.RowHeadersWidth = 20;
+
+        dataGridView.Columns.Add(new DataGridViewTextBoxColumn { Name = "IsBlocked", HeaderText = "Blocked?", Width = 80, DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleCenter } });
         dataGridView.Columns.Add(new DataGridViewCheckBoxColumn { Name = "Block", HeaderText = "Block?", Width = 60 });
-        dataGridView.Columns.Add(new DataGridViewTextBoxColumn { Name = "IP", HeaderText = "IP Address", Width = 150 });
-        dataGridView.Columns.Add(new DataGridViewTextBoxColumn { Name = "Ping", HeaderText = "Ping (ms)", Width = 80 });
+        dataGridView.Columns.Add(new DataGridViewTextBoxColumn { Name = "IP", HeaderText = "IP Address", Width = 150, DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleCenter } });
+        dataGridView.Columns.Add(new DataGridViewTextBoxColumn { Name = "Ping", HeaderText = "Ping (ms)", Width = 80, DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleCenter } });
         dataGridView.Columns.Add(new DataGridViewTextBoxColumn { Name = "Continent", HeaderText = "Continent", Width = 100 });
         dataGridView.Columns.Add(new DataGridViewTextBoxColumn { Name = "Region", HeaderText = "Region", Width = 200 });
-        dataGridView.Columns.Add(new DataGridViewTextBoxColumn { Name = "RelayCount", HeaderText = "Relays", Width = 80 });
+        dataGridView.Columns.Add(new DataGridViewTextBoxColumn { Name = "RelayCount", HeaderText = "Relays", Width = 80, DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleCenter } });
 
         // Make columns sortable
         foreach (DataGridViewColumn col in dataGridView.Columns)
@@ -77,28 +96,74 @@ public class MainForm : Form
         dataGridView.CellContentClick += DataGridView_CellContentClick;
         this.Controls.Add(dataGridView);
 
+        var buttonPanel = new Panel();
+        buttonPanel.Location = new System.Drawing.Point(12, this.ClientSize.Height - 70);
+        buttonPanel.Size = new System.Drawing.Size(this.ClientSize.Width - 24, 35);
+        buttonPanel.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+        this.Controls.Add(buttonPanel);
+
         refreshButton = new Button();
         refreshButton.Text = "Refresh Data";
-        refreshButton.Location = new System.Drawing.Point(10, 520);
+        refreshButton.Size = new System.Drawing.Size(120, 30);
+        refreshButton.Location = new System.Drawing.Point(0, 0);
+        refreshButton.Font = new System.Drawing.Font("Segoe UI", 9);
+        refreshButton.FlatStyle = FlatStyle.Flat;
+        refreshButton.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(200, 200, 200);
         refreshButton.Click += RefreshButton_Click;
-        this.Controls.Add(refreshButton);
+        buttonPanel.Controls.Add(refreshButton);
 
         blockButton = new Button();
         blockButton.Text = "Apply Block Rules";
-        blockButton.Location = new System.Drawing.Point(120, 520);
+        blockButton.Size = new System.Drawing.Size(130, 30);
+        blockButton.Location = new System.Drawing.Point(130, 0);
+        blockButton.Font = new System.Drawing.Font("Segoe UI", 9);
+        blockButton.FlatStyle = FlatStyle.Flat;
+        blockButton.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(200, 200, 200);
+        blockButton.BackColor = System.Drawing.Color.FromArgb(255, 87, 87);
+        blockButton.ForeColor = System.Drawing.Color.White;
         blockButton.Click += BlockButton_Click;
-        this.Controls.Add(blockButton);
+        buttonPanel.Controls.Add(blockButton);
+
+        selectRegionButton = new Button();
+        selectRegionButton.Text = "Select Region";
+        selectRegionButton.Size = new System.Drawing.Size(120, 30);
+        selectRegionButton.Location = new System.Drawing.Point(270, 0);
+        selectRegionButton.Font = new System.Drawing.Font("Segoe UI", 9);
+        selectRegionButton.FlatStyle = FlatStyle.Flat;
+        selectRegionButton.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(200, 200, 200);
+        selectRegionButton.Click += SelectRegionButton_Click;
+        buttonPanel.Controls.Add(selectRegionButton);
+
+        selectedRegionLabel = new Label();
+        selectedRegionLabel.Text = "Selected Region: None";
+        selectedRegionLabel.Location = new System.Drawing.Point(12, this.ClientSize.Height - 55);
+        selectedRegionLabel.Size = new System.Drawing.Size(250, 20);
+        selectedRegionLabel.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+        selectedRegionLabel.Font = new System.Drawing.Font("Segoe UI", 9);
+        selectedRegionLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+        this.Controls.Add(selectedRegionLabel);
 
         statusLabel = new Label();
         statusLabel.Text = "Ready - Windows Firewall connected";
-        statusLabel.Location = new System.Drawing.Point(10, 555);
-        statusLabel.Size = new System.Drawing.Size(760, 30);
-        statusLabel.BorderStyle = BorderStyle.FixedSingle;
+        statusLabel.Location = new System.Drawing.Point(12, this.ClientSize.Height - 30);
+        statusLabel.Size = new System.Drawing.Size(this.ClientSize.Width - 24, 25);
+        statusLabel.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+        statusLabel.BorderStyle = BorderStyle.None;
+        statusLabel.BackColor = System.Drawing.Color.FromArgb(220, 220, 220);
+        statusLabel.Font = new System.Drawing.Font("Segoe UI", 9);
         statusLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+        statusLabel.Padding = new Padding(5, 0, 0, 0);
         this.Controls.Add(statusLabel);
+
+        this.Resize += (s, e) => UpdateLayout();
 
         LoadBlockedIPs();
         LoadDataAsync();
+    }
+
+    private void UpdateLayout()
+    {
+        // This method can be expanded if needed for dynamic adjustments
     }
 
     private void LoadBlockedIPs()
@@ -139,7 +204,13 @@ public class MainForm : Form
                     var ips = ipList.Split(',');
                     foreach (var ip in ips)
                     {
-                        blockedIPs.Add(ip.Trim());
+                        string cleanIP = ip.Trim();
+                        // Remove /32 CIDR notation if present
+                        if (cleanIP.Contains("/"))
+                        {
+                            cleanIP = cleanIP.Substring(0, cleanIP.IndexOf("/"));
+                        }
+                        blockedIPs.Add(cleanIP);
                     }
                     break; // Found the IPs for this rule
                 }
@@ -149,12 +220,6 @@ public class MainForm : Form
         // Update status label with debug info
         string firstThreeIPs = string.Join(", ", blockedIPs.Take(3));
         statusLabel.Text = $"Firewall rules loaded. IPs blocked: {blockedIPs.Count}\r\nFirst 3 IPs: {firstThreeIPs}";
-
-        // DEBUG: Show message box if no IPs found
-        if (blockedIPs.Count == 0)
-        {
-            MessageBox.Show("No firewall rules found or no IPs blocked", "Debug", MessageBoxButtons.OK);
-        }
     }
 
     private async void RefreshButton_Click(object? sender, EventArgs e)
@@ -165,24 +230,60 @@ public class MainForm : Form
 
     private void BlockButton_Click(object? sender, EventArgs e)
     {
-        var selectedIPs = dataGridView.Rows.Cast<DataGridViewRow>()
-            .Where(r => r.Cells["Block"].Value is bool b && b)
-            .Select(r => r.Cells["IP"].Value?.ToString())
-            .Where(ip => !string.IsNullOrEmpty(ip))
-            .Distinct()
-            .ToList();
+        List<string> selectedIPs;
 
-        if (selectedIPs.Count == 0)
+        if (!string.IsNullOrEmpty(selectedContinent))
         {
-            statusLabel.Text = "No IPs selected to block";
-            return;
+            if (selectedContinent == "World")
+            {
+                // "World" means unblock all - no IPs to block
+                selectedIPs = new List<string>();
+            }
+            else
+            {
+                // Block all IPs NOT in the selected continent
+                selectedIPs = dataGridView.Rows.Cast<DataGridViewRow>()
+                    .Where(r =>
+                    {
+                        string? rowContinent = r.Cells["Continent"].Value?.ToString();
+                        return !string.IsNullOrEmpty(rowContinent) && rowContinent != selectedContinent;
+                    })
+                    .Select(r => r.Cells["IP"].Value?.ToString())
+                    .Where(ip => !string.IsNullOrEmpty(ip))
+                    .Distinct()
+                    .ToList();
+
+                if (selectedIPs.Count == 0)
+                {
+                    statusLabel.Text = $"No IPs to block (all relays are in {selectedContinent})";
+                    return;
+                }
+            }
+        }
+        else
+        {
+            // Manual selection mode
+            selectedIPs = dataGridView.Rows.Cast<DataGridViewRow>()
+                .Where(r => r.Cells["Block"].Value is bool b && b)
+                .Select(r => r.Cells["IP"].Value?.ToString())
+                .Where(ip => !string.IsNullOrEmpty(ip))
+                .Distinct()
+                .ToList();
+
+            if (selectedIPs.Count == 0)
+            {
+                statusLabel.Text = "No IPs selected to block";
+                return;
+            }
         }
 
         try
         {
             UpdateFirewallRule(selectedIPs);
             LoadBlockedIPs();
-            statusLabel.Text = $"Updated firewall rule with {selectedIPs.Count} relay IPs";
+            RefreshButton_Click(null, EventArgs.Empty);
+            string modeMessage = !string.IsNullOrEmpty(selectedContinent) ? $" (filtered: all except {selectedContinent})" : " (manual selection)";
+            statusLabel.Text = $"Updated firewall rules with {selectedIPs.Count} relay IPs{modeMessage}";
         }
         catch (Exception ex)
         {
@@ -193,21 +294,8 @@ public class MainForm : Form
 
     private void UpdateFirewallRule(List<string> selectedIPs)
     {
-        // First, delete existing rules if they exist (multiple rules now)
-        var deleteProcess = new System.Diagnostics.Process();
-        deleteProcess.StartInfo.FileName = "netsh";
-        deleteProcess.StartInfo.Arguments = $"advfirewall firewall delete rule name=\"{RULE_NAME}-*\"";
-        deleteProcess.StartInfo.UseShellExecute = false;
-        deleteProcess.StartInfo.RedirectStandardOutput = true;
-        deleteProcess.StartInfo.RedirectStandardError = true;
-        deleteProcess.StartInfo.CreateNoWindow = true;
-        deleteProcess.Start();
-        deleteProcess.WaitForExit();
-
-        // Create comma-separated list of IPs
-        string ipList = string.Join(",", selectedIPs);
-
-        string[] rules = new string[]
+        // Delete all existing rules
+        string[] ruleNames = new string[]
         {
             $"{RULE_NAME}-Outbound-UDP",
             $"{RULE_NAME}-Inbound-UDP",
@@ -217,22 +305,42 @@ public class MainForm : Form
             $"{RULE_NAME}-Inbound-Any"
         };
 
+        foreach (string ruleName in ruleNames)
+        {
+            var deleteProcess = new System.Diagnostics.Process();
+            deleteProcess.StartInfo.FileName = "netsh";
+            deleteProcess.StartInfo.Arguments = $"advfirewall firewall delete rule name=\"{ruleName}\"";
+            deleteProcess.StartInfo.UseShellExecute = false;
+            deleteProcess.StartInfo.CreateNoWindow = true;
+            deleteProcess.Start();
+            deleteProcess.WaitForExit();
+        }
+
+        // If no IPs to block, we're done (all rules deleted, effectively unblocked)
+        if (selectedIPs.Count == 0)
+        {
+            return;
+        }
+
+        // Create comma-separated list of IPs
+        string ipList = string.Join(",", selectedIPs);
+
         string[][] ruleArgs = new string[][]
         {
-            new string[] { "out", "udp", "27015-27068" },
-            new string[] { "in", "udp", "27015-27068" },
-            new string[] { "out", "tcp", "27015-27068" },
-            new string[] { "in", "tcp", "27015-27068" },
-            new string[] { "out", "any", "" },
-            new string[] { "in", "any", "" }
+            new string[] { $"{RULE_NAME}-Outbound-UDP", "out", "udp", "27015-27068" },
+            new string[] { $"{RULE_NAME}-Inbound-UDP", "in", "udp", "27015-27068" },
+            new string[] { $"{RULE_NAME}-Outbound-TCP", "out", "tcp", "27015-27068" },
+            new string[] { $"{RULE_NAME}-Inbound-TCP", "in", "tcp", "27015-27068" },
+            new string[] { $"{RULE_NAME}-Outbound-Any", "out", "any", "" },
+            new string[] { $"{RULE_NAME}-Inbound-Any", "in", "any", "" }
         };
 
-        for (int i = 0; i < rules.Length; i++)
+        foreach (var ruleArg in ruleArgs)
         {
-            string ruleName = rules[i];
-            string direction = ruleArgs[i][0];
-            string protocol = ruleArgs[i][1];
-            string ports = ruleArgs[i][2];
+            string ruleName = ruleArg[0];
+            string direction = ruleArg[1];
+            string protocol = ruleArg[2];
+            string ports = ruleArg[3];
 
             var process = new System.Diagnostics.Process();
             string portsArg = !string.IsNullOrEmpty(ports) ? $" remoteport={ports}" : "";
@@ -250,7 +358,7 @@ public class MainForm : Form
 
             if (process.ExitCode != 0)
             {
-                throw new Exception($"Failed to create firewall rule '{ruleName}': {error}\r\nOutput: {output}");
+                throw new Exception($"Failed to create firewall rule '{ruleName}': {error}");
             }
         }
     }
@@ -264,7 +372,6 @@ public class MainForm : Form
         try
         {
             using var client = new HttpClient();
-            // var response = await client.GetStringAsync("http://localhost:3001/steamconfig");
             var response = await client.GetStringAsync("https://api.steampowered.com/ISteamApps/GetSDRConfig/v1/?appid=730");
             var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
             config = JsonSerializer.Deserialize<SteamConfig>(response, options);
@@ -272,22 +379,17 @@ public class MainForm : Form
             if (config?.Pops != null)
             {
                 var rows = new List<DataGridViewRow>();
-
-                // DEBUG: Log what we're comparing
                 int blockedCount = 0;
-
-                // DEBUG: Check first relay IP
-                string firstRelayIP = "";
+                availableContinents.Clear();
 
                 foreach (KeyValuePair<string, PopInfo> kvp in config.Pops)
                 {
                     string key = kvp.Key;
                     PopInfo pop = kvp.Value;
                     string continent = GetContinent(pop.Geo);
+                    availableContinents.Add(continent);
                     foreach (var relay in pop.Relays)
                     {
-                        if (string.IsNullOrEmpty(firstRelayIP)) firstRelayIP = relay.Ipv4;
-
                         bool isBlocked = blockedIPs.Contains(relay.Ipv4);
                         if (isBlocked) blockedCount++;
 
@@ -298,19 +400,12 @@ public class MainForm : Form
                     }
                 }
 
-                // DEBUG: Compare first IPs
-                string firstBlockedIP = blockedIPs.FirstOrDefault() ?? "none";
-                MessageBox.Show($"First blocked IP: [{firstBlockedIP}] (length: {firstBlockedIP.Length})\r\n" +
-                               $"First relay IP: [{firstRelayIP}] (length: {firstRelayIP.Length})\r\n" +
-                               $"Are equal: {firstBlockedIP == firstRelayIP}\r\n" +
-                               $"HashSet contains relay IP: {blockedIPs.Contains(firstRelayIP)}",
-                               "Debug IP Comparison");
-
                 dataGridView.Rows.AddRange(rows.ToArray());
 
-                // DEBUG: Update status to show matching info
-                string firstThreeIPs = string.Join(", ", blockedIPs.Take(3));
-                statusLabel.Text = $"Firewall: {blockedIPs.Count} IPs blocked | Grid: {blockedCount} matched\r\nFirst 3: {firstThreeIPs}";
+
+
+                // Update status to show matching info
+                statusLabel.Text = $"Firewall: {blockedIPs.Count} IPs blocked | Grid: {blockedCount} matched";
 
                 // Ping IPs asynchronously after loading
                 foreach (DataGridViewRow row in dataGridView.Rows)
@@ -385,36 +480,30 @@ public class MainForm : Form
                 if (cmp != 0) return cmp;
             }
         }
-        return string.Compare(ip1, ip2); // fallback
+        return string.Compare(ip1, ip2);
     }
 
     private int ComparePingValues(string ping1, string ping2)
     {
-        // Handle special cases: "-", then numbers, then "Timeout", "N/A"
         if (ping1 == ping2) return 0;
-
-        // "-" (not started) should be last
         if (ping1 == "-") return 1;
         if (ping2 == "-") return -1;
 
-        // Try to parse as numbers
         if (int.TryParse(ping1, out int n1) && int.TryParse(ping2, out int n2))
         {
             return n1.CompareTo(n2);
         }
 
-        // One is number, one is text - numbers first
         if (int.TryParse(ping1, out _)) return -1;
         if (int.TryParse(ping2, out _)) return 1;
 
-        // Both text, alphabetical
         return string.Compare(ping1, ping2);
     }
 
     private string GetContinent(double[] geo)
     {
         if (geo.Length < 2) return "Unknown";
-        double lat = geo[1], lon = geo[0]; // Assuming [lon, lat]
+        double lat = geo[1], lon = geo[0];
 
         if (lat >= 35 && lat <= 72 && lon >= -25 && lon <= 45) return "Europe";
         if (lat >= 24 && lat <= 50 && lon >= -125 && lon <= -65) return "USA";
@@ -471,5 +560,86 @@ public class MainForm : Form
                 row.Cells["Ping"].Value = "N/A";
             }
         }
+    }
+
+    private void SelectRegionButton_Click(object? sender, EventArgs e)
+    {
+        using var dialog = new RegionSelectForm(availableContinents);
+        var result = dialog.ShowDialog(this);
+        if (result == DialogResult.OK && !string.IsNullOrEmpty(dialog.SelectedContinent))
+        {
+            selectedContinent = dialog.SelectedContinent;
+            selectedRegionLabel.Text = $"Selected Region: {selectedContinent}";
+            statusLabel.Text = $"Region selected: {selectedContinent}. Refreshing data...";
+            RefreshButton_Click(null, EventArgs.Empty);
+        }
+    }
+}
+
+public class RegionSelectForm : Form
+{
+    public string? SelectedContinent { get; private set; }
+
+    private readonly HashSet<string> continents;
+
+    public RegionSelectForm(HashSet<string> availableContinents)
+    {
+        continents = availableContinents.ToHashSet();
+        continents.Add("World"); // Add "World" option
+        this.Text = "Select Preferred Region";
+        this.Size = new System.Drawing.Size(350, 280); // Increased height for info label
+        this.StartPosition = FormStartPosition.CenterParent;
+        this.FormBorderStyle = FormBorderStyle.FixedDialog;
+        this.MaximizeBox = false;
+        this.MinimizeBox = false;
+        this.BackColor = System.Drawing.Color.FromArgb(240, 240, 240);
+
+        var infoLabel = new Label();
+        infoLabel.Text = "Select your preferred region. 'World' removes all blocks.\nAfter confirming, click 'Apply Block Rules' to update firewall.";
+        infoLabel.Size = new System.Drawing.Size(310, 40);
+        infoLabel.Location = new System.Drawing.Point(20, 10);
+        infoLabel.Font = new System.Drawing.Font("Segoe UI", 8);
+        infoLabel.ForeColor = System.Drawing.Color.DarkBlue;
+        this.Controls.Add(infoLabel);
+
+        var listBox = new ListBox();
+        listBox.Location = new System.Drawing.Point(20, 50);
+        listBox.Size = new System.Drawing.Size(310, 120);
+        var sortedContinents = continents.OrderBy(c => c == "World" ? 1 : 0).ThenBy(c => c).ToArray(); // World last
+        listBox.Items.AddRange(sortedContinents);
+        listBox.SelectionMode = SelectionMode.One;
+        this.Controls.Add(listBox);
+
+        var okButton = new Button();
+        okButton.Text = "Confirm";
+        okButton.Location = new System.Drawing.Point(80, 180);
+        okButton.Size = new System.Drawing.Size(80, 30);
+        okButton.BackColor = System.Drawing.Color.FromArgb(51, 153, 255);
+        okButton.ForeColor = System.Drawing.Color.White;
+        okButton.Click += (s, e) =>
+        {
+            if (listBox.SelectedItem != null)
+            {
+                SelectedContinent = listBox.SelectedItem.ToString();
+                this.DialogResult = DialogResult.OK;
+                this.Close();
+            }
+        };
+        this.Controls.Add(okButton);
+
+        var cancelButton = new Button();
+        cancelButton.Text = "Cancel";
+        cancelButton.Location = new System.Drawing.Point(190, 180);
+        cancelButton.Size = new System.Drawing.Size(80, 30);
+        cancelButton.BackColor = System.Drawing.Color.FromArgb(200, 200, 200);
+        cancelButton.Click += (s, e) =>
+        {
+            this.DialogResult = DialogResult.Cancel;
+            this.Close();
+        };
+        this.Controls.Add(cancelButton);
+
+        this.AcceptButton = okButton;
+        this.CancelButton = cancelButton;
     }
 }
