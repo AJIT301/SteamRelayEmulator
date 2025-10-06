@@ -233,7 +233,11 @@ public class MainForm : Form
     {
         List<string> selectedIPs;
 
-        if (!string.IsNullOrEmpty(selectedContinent))
+        // Check if user has manually selected any IPs (switches to manual mode)
+        bool hasManualSelections = dataGridView.Rows.Cast<DataGridViewRow>()
+            .Any(r => r.Cells["Block"].Value is bool b && b);
+
+        if (!string.IsNullOrEmpty(selectedContinent) && !hasManualSelections)
         {
             if (selectedContinent == "World")
             {
